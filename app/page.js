@@ -1,65 +1,300 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function InventoryHome() {
+  const router = useRouter();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("ALL");
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  /* ---------- Screen size ---------- */
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth <= 425);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  /* ---------- Fetch products ---------- */
+  useEffect(() => {
+    fetch("http://localhost:5000/products")
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(
+          data.map((p) => ({
+            ...p,
+            isDamaged: p.isDamaged || false,
+          }))
+        );
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  /* ---------- Toggle damaged (UI only) ---------- */
+  const toggleDamaged = (id) => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p._id === id ? { ...p, isDamaged: !p.isDamaged } : p
+      )
+    );
+  };
+
+  /* ---------- Delete ---------- */
+  const deleteProduct = async (id) => {
+    if (!window.confirm("Delete this product?")) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/products/${id}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error();
+      setProducts((prev) => prev.filter((p) => p._id !== id));
+    } catch {
+      alert("Delete failed");
+    }
+  };
+
+  /* ---------- Filter ---------- */
+  const filteredProducts = products.filter((p) => {
+    if (filter === "DAMAGED") return p.isDamaged;
+    if (filter === "OUT OF STOCK") return p.quantity === 0;
+    if (filter === "LOW STOCK")
+      return p.quantity > 0 && p.quantity < p.minStock;
+    if (filter === "IN STOCK") return p.quantity >= p.minStock;
+    return true;
+  });
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div style={pageStyle}>
+      <div style={cardStyle}>
+        {/* Header */}
+        <div style={headerStyle}>
+          <h1 style={{ color: "#67e8f9" }}>Inventory</h1>
+          <button
+            onClick={() => router.push("/add-product")}
+            style={btnPrimary}
+          >
+            + Add Product
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div style={filterRow}>
+          {[
+            ["ALL", "All"],
+            ["IN STOCK", "In Stock"],
+            ["LOW STOCK", "Low Stock"],
+            ["OUT OF STOCK", "Out of Stock"],
+            ["DAMAGED", "Damaged ⭐"],
+          ].map(([k, v]) => (
+            <button
+              key={k}
+              onClick={() => setFilter(k)}
+              style={{
+                ...btnFilter,
+                backgroundColor:
+                  filter === k ? "#06b6d4" : "transparent",
+                color: filter === k ? "#020617" : "#94a3b8",
+              }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+              {v}
+            </button>
+          ))}
+        </div>
+
+        {loading && <p>Loading...</p>}
+
+        {!loading && filteredProducts.length === 0 && (
+          <p style={{ textAlign: "center", color: "#94a3b8" }}>
+            No products found
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        )}
+
+        {!loading && filteredProducts.length > 0 && (
+          <div style={{ overflowX: isSmallScreen ? "auto" : "visible" }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr style={{ color: "#cbd5f5" }}>
+                  <th>⭐</th>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th>Qty</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: "center" }}>Update</th>
+                  <th style={{ textAlign: "center" }}>Delete</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredProducts.map((p) => {
+                  const out = p.quantity === 0;
+                  const low =
+                    p.quantity > 0 && p.quantity < p.minStock;
+
+                  return (
+                    <tr
+                      key={p._id}
+                      style={{
+                        backgroundColor: p.isDamaged
+                          ? "rgba(234,179,8,0.08)"
+                          : "#020617",
+                      }}
+                    >
+                      <td style={td}>
+                        <span
+                          onClick={() => toggleDamaged(p._id)}
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            color: p.isDamaged
+                              ? "#facc15"
+                              : "#475569",
+                          }}
+                        >
+                          ★
+                        </span>
+                      </td>
+
+                      <td style={td}>{p.name}</td>
+                      <td style={{ ...td, color: "#94a3b8" }}>
+                        {p.sku}
+                      </td>
+                      <td style={td}>{p.quantity}</td>
+
+                      {/* STATUS — FULL TEXT */}
+                      <td
+                        style={{
+                          ...td,
+                          fontWeight: "bold",
+                          color: p.isDamaged
+                            ? "#facc15"
+                            : out
+                            ? "#9ca3af"
+                            : low
+                            ? "#f87171"
+                            : "#22c55e",
+                        }}
+                      >
+                        {p.isDamaged
+                          ? "DAMAGED"
+                          : out
+                          ? "OUT OF STOCK"
+                          : low
+                          ? "LOW STOCK"
+                          : "IN STOCK"}
+                      </td>
+
+                      <td style={{ ...td, textAlign: "center" }}>
+                        <button
+                          onClick={() =>
+                            router.push(`/update-stock/${p._id}`)
+                          }
+                          style={btnUpdate}
+                        >
+                          Update
+                        </button>
+                      </td>
+
+                      <td style={{ ...td, textAlign: "center" }}>
+                        <button
+                          onClick={() => deleteProduct(p._id)}
+                          style={btnDelete}
+                          title="Delete"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+/* ---------- Styles ---------- */
+const pageStyle = {
+  minHeight: "100vh",
+  backgroundColor: "#0f172a",
+  padding: "24px",
+  color: "#ffffff",
+  fontFamily: "Arial",
+};
+
+const cardStyle = {
+  maxWidth: "1100px",
+  margin: "0 auto",
+  backgroundColor: "#020617",
+  padding: "24px",
+  borderRadius: "8px",
+};
+
+const headerStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: "20px",
+};
+
+const filterRow = {
+  display: "flex",
+  gap: "10px",
+  marginBottom: "20px",
+  flexWrap: "wrap",
+};
+
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "separate",
+  borderSpacing: "0 6px",
+  whiteSpace: "nowrap",
+};
+
+const td = {
+  padding: "12px",
+  whiteSpace: "nowrap",
+};
+
+const btnPrimary = {
+  padding: "8px 14px",
+  backgroundColor: "#06b6d4",
+  border: "none",
+  borderRadius: "4px",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
+
+const btnFilter = {
+  padding: "6px 12px",
+  border: "1px solid #334155",
+  borderRadius: "4px",
+  cursor: "pointer",
+  fontSize: "13px",
+};
+
+const btnUpdate = {
+  padding: "6px 10px",
+  backgroundColor: "#1e40af",
+  border: "none",
+  borderRadius: "4px",
+  color: "#fff",
+  cursor: "pointer",
+};
+
+const btnDelete = {
+  backgroundColor: "transparent",
+  border: "none",
+  cursor: "pointer",
+  fontSize: "18px",
+  color: "#ef4444",
+};
