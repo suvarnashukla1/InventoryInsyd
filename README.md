@@ -89,21 +89,6 @@ Inventory can be filtered based on:
 - Single-line rows to prevent layout breakage
 
 
-## Project Structure
-inventory/
-├── app/
-│ ├── page.js
-│ ├── add-product/page.js
-│ ├── update-stock/[id]/page.js
-│
-├── backend/
-│ ├── index.js
-│ ├── .env
-│
-├── .gitignore
-└── README.md
-
-
 ## Setup Instructions
 
 
@@ -120,8 +105,8 @@ Start the backend server:
 cd backend
 node index.js
 ```
-```bash
 Frontend Setup:
+```bash
 npm install
 npm run dev
 
