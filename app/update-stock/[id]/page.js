@@ -15,7 +15,7 @@ export default function UpdateStockPage() {
     setLoading(true);
 
     try {
-      await fetch(`http://localhost:5000/products/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
