@@ -10,7 +10,6 @@ export default function InventoryHome() {
   const [filter, setFilter] = useState("ALL");
   const [isSmallScreen, setIsSmallScreen] = useState(false);
 
-  /* ---------- Screen size ---------- */
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth <= 425);
@@ -20,9 +19,8 @@ export default function InventoryHome() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  /* ---------- Fetch products ---------- */
   useEffect(() => {
-    fetch("http://localhost:5000/products")
+   fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
       .then((res) => res.json())
       .then((data) => {
         setProducts(
@@ -36,7 +34,6 @@ export default function InventoryHome() {
       .catch(() => setLoading(false));
   }, []);
 
-  /* ---------- Toggle damaged (UI only) ---------- */
   const toggleDamaged = (id) => {
     setProducts((prev) =>
       prev.map((p) =>
@@ -45,15 +42,13 @@ export default function InventoryHome() {
     );
   };
 
-  /* ---------- Delete ---------- */
   const deleteProduct = async (id) => {
     if (!window.confirm("Delete this product?")) return;
 
     try {
-      const res = await fetch(
-        `http://localhost:5000/products/${id}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
+  method: "DELETE",
+})
       if (!res.ok) throw new Error();
       setProducts((prev) => prev.filter((p) => p._id !== id));
     } catch {
@@ -74,7 +69,6 @@ export default function InventoryHome() {
   return (
     <div style={pageStyle}>
       <div style={cardStyle}>
-        {/* Header */}
         <div style={headerStyle}>
           <h1 style={{ color: "#67e8f9" }}>Inventory</h1>
           <button
@@ -85,7 +79,6 @@ export default function InventoryHome() {
           </button>
         </div>
 
-        {/* Filters */}
         <div style={filterRow}>
           {[
             ["ALL", "All"],
@@ -168,7 +161,6 @@ export default function InventoryHome() {
                       </td>
                       <td style={td}>{p.quantity}</td>
 
-                      {/* STATUS — FULL TEXT */}
                       <td
                         style={{
                           ...td,
@@ -223,7 +215,6 @@ export default function InventoryHome() {
   );
 }
 
-/* ---------- Styles ---------- */
 const pageStyle = {
   minHeight: "100vh",
   backgroundColor: "#0f172a",

@@ -23,7 +23,7 @@ const ProductSchema = new mongoose.Schema({
   isDamaged: { type: Boolean, default: false },
 });
 
-const Product = mongoose.model("Product", ProductSchema, "insyd");
+const Product = mongoose.model("Insynd", ProductSchema, "insyd");
 
 
 app.get("/products", async (req, res) => {
