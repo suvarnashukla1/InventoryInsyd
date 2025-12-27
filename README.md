@@ -109,19 +109,19 @@ inventory/
 
 ### Clone the Repository
 
-```bash
-git clone https://github.com/<your-username>/inventory-management-system.git
-cd inventory-management-system
+
 ## Setup Instructions
 
 ### Clone the Repository
 
-```bash
+
 Start the backend server:
+```bash
 cd backend
 node index.js
-
-Frontend Setup
+```
+```bash
+Frontend Setup:
 npm install
 npm run dev
 
