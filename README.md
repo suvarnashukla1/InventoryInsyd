@@ -91,12 +91,6 @@ Inventory can be filtered based on:
 
 ## Setup Instructions
 
-
-### Clone the Repository
-
-
-## Setup Instructions
-
 ### Clone the Repository
 
 
